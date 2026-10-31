@@ -113,15 +113,16 @@
             overflow: hidden;
         }
 
-        /* SIDEBAR PRESETS */
+        /* SIDEBAR PRESETS & HISTORY */
         .sidebar {
-            width: 270px;
+            width: 280px;
             background: var(--bg-card);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 16px;
             gap: 16px;
+            overflow-y: auto;
         }
 
         .section-title {
@@ -158,6 +159,32 @@
             border-color: var(--cyan);
             background: rgba(0, 240, 255, 0.05);
             transform: translateX(3px);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
         }
 
         /* MAIN CONTENT AREA */
@@ -433,24 +460,19 @@
                 <i class="fa-solid fa-bolt"></i> Workflow Script
             </button>
 
-            <div class="section-title" style="margin-top: 16px;">System Status</div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
-                <p><strong>Core:</strong> Online</p>
-                <p><strong>Security:</strong> Encrypted</p>
+            <div class="section-title" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Chat History</span>
+                <button class="code-btn" style="color: var(--primary);" onclick="clearHistory()">Clear</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- History items will load here -->
             </div>
         </div>
 
         <!-- MAIN CHAT AREA -->
         <div class="main-content">
             <div class="chat-history" id="chatHistory">
-                <!-- Ultron Initial Welcome Message -->
-                <div class="message">
-                    <div class="avatar avatar-ultron"><i class="fa-solid fa-robot"></i></div>
-                    <div class="msg-content">
-                        <p><strong>ULTRON ONLINE.</strong></p>
-                        <p>Ask Ultron anything. Ready to process code, build layouts, or handle developer tasks.</p>
-                    </div>
-                </div>
+                <!-- Messages will load here -->
             </div>
 
             <!-- CHAT INPUT -->
@@ -500,9 +522,22 @@
     <script>
         let apiKey = localStorage.getItem('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') || '';
         let selectedModel = localStorage.getItem('ULTRON_MODEL') || 'openai/gpt-oss-120b';
+        let chatMessages = JSON.parse(localStorage.getItem('ULTRON_CHAT_HISTORY')) || [];
 
         document.getElementById('apiKeyInput').value = apiKey;
         document.getElementById('modelSelect').value = selectedModel;
+
+        // Load existing history on startup
+        window.onload = function() {
+            if (chatMessages.length === 0) {
+                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>Ask Ultron anything. Ready to process code, build layouts, or handle developer tasks.', false);
+            } else {
+                chatMessages.forEach(msg => {
+                    appendMessage(msg.sender, msg.content, false);
+                });
+            }
+            renderHistorySidebar();
+        };
 
         function openSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
@@ -552,10 +587,10 @@
             const text = input.value.trim();
             if (!text) return;
 
-            appendMessage('user', text);
+            appendMessage('user', text, true);
             input.value = '';
 
-            const loadingId = appendMessage('ultron', `<i>Ultron is processing...</i>`);
+            const loadingId = appendMessage('ultron', '<i>Ultron is processing...</i>', false);
 
             if (apiKey) {
                 try {
@@ -576,29 +611,34 @@
 
                     const data = await response.json();
                     document.getElementById(loadingId).remove();
+                    // Remove temporary loading from array if needed, or update chatMessages properly
+                    chatMessages.pop();
 
                     if (data.choices && data.choices[0]) {
-                        appendMessage('ultron', data.choices[0].message.content);
+                        appendMessage('ultron', data.choices[0].message.content, true);
                     } else if (data.error) {
-                        appendMessage('ultron', 'System Error: ' + data.error.message);
+                        appendMessage('ultron', 'System Error: ' + data.error.message, true);
                     } else {
-                        appendMessage('ultron', 'Error: Unable to parse response.');
+                        appendMessage('ultron', 'Error: Unable to parse response.', true);
                     }
                 } catch (err) {
                     document.getElementById(loadingId).remove();
-                    appendMessage('ultron', 'Connection Error: ' + err.message);
+                    chatMessages.pop();
+                    appendMessage('ultron', 'Connection Error: ' + err.message, true);
                 }
             } else {
                 setTimeout(() => {
                     document.getElementById(loadingId).remove();
-                    generateSimulatedResponse(text);
+                    chatMessages.pop();
+                    let simResponse = `### Ultron Response\n\nProcessed your request: **"${text}"** successfully.\n\nConfigure your API Key in Settings to run live model completions.`;
+                    appendMessage('ultron', simResponse, true);
                 }, 1000);
             }
         }
 
-        function appendMessage(sender, content) {
+        function appendMessage(sender, content, saveToStorage) {
             const history = document.getElementById('chatHistory');
-            const msgId = 'msg-' + Date.now();
+            const msgId = 'msg-' + Date.now() + Math.random();
 
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
@@ -620,7 +660,44 @@
 
             history.appendChild(messageDiv);
             history.scrollTop = history.scrollHeight;
+
+            if (saveToStorage) {
+                chatMessages.push({ sender, content });
+                localStorage.setItem('ULTRON_CHAT_HISTORY', JSON.stringify(chatMessages));
+                renderHistorySidebar();
+            }
+
             return msgId;
+        }
+
+        function renderHistorySidebar() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            
+            // Filter only user messages for history index
+            const userMsgs = chatMessages.filter(m => m.sender === 'user');
+            
+            if (userMsgs.length === 0) {
+                list.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); padding:4px;">No recent history</div>';
+                return;
+            }
+
+            userMsgs.forEach((msg) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = msg.content;
+                list.appendChild(item);
+            });
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear chat history?')) {
+                localStorage.removeItem('ULTRON_CHAT_HISTORY');
+                chatMessages = [];
+                document.getElementById('chatHistory').innerHTML = '';
+                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>History cleared. Ready for new instructions.', false);
+                renderHistorySidebar();
+            }
         }
 
         function formatMarkdown(text) {
@@ -663,11 +740,6 @@
             
             sandboxPanel.classList.remove('hidden');
             iframe.srcdoc = code;
-        }
-
-        function generateSimulatedResponse(prompt) {
-            let response = `### Ultron Response\n\nProcessed your request: **"${prompt}"** successfully.\n\nConfigure your API Key in Settings to run live model completions.`;
-            appendMessage('ultron', response);
         }
     </script>
 </body>
