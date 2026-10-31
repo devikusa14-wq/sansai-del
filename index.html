@@ -526,6 +526,7 @@
     </div>
 
     <script>
+        // API Key and Model persistence via Local Storage
         let apiKey = localStorage.getItem('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') || '';
         let selectedModel = localStorage.getItem('ULTRON_MODEL') || 'openai/gpt-oss-120b';
         let chatMessages = JSON.parse(localStorage.getItem('ULTRON_CHAT_HISTORY')) || [];
@@ -560,10 +561,13 @@
         function saveSettings() {
             apiKey = document.getElementById('apiKeyInput').value.trim();
             selectedModel = document.getElementById('modelSelect').value;
+            
+            // Permanently save to browser local storage
             localStorage.setItem('ULTRON_API_KEY', apiKey);
             localStorage.setItem('ULTRON_MODEL', selectedModel);
+            
             closeSettings();
-            alert('Settings saved successfully.');
+            alert('Settings saved successfully and stored locally.');
         }
 
         function toggleSandbox() {
