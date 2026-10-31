@@ -577,6 +577,10 @@
                 <input type="password" id="apiKeyInput" placeholder="Enter Groq API Key...">
             </div>
             <div class="form-group">
+                <label>Pollinations API Key (Optional)</label>
+                <input type="password" id="pollinationsKeyInput" placeholder="Optional: enter Pollinations Key (sk_...)">
+            </div>
+            <div class="form-group">
                 <label>Groq Model</label>
                 <select id="modelSelect">
                     <option value="openai/gpt-oss-120b">Model Primary</option>
@@ -589,15 +593,17 @@
 
     <script>
         let apiKey = localStorage.getItem('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') || '';
+        let pollinationsKey = localStorage.getItem('sk_CLMaxHoxKMPS3BrttCu1oIH4bBdMSWXQ') || '';
         let selectedModel = localStorage.getItem('ULTRON_MODEL') || 'openai/gpt-oss-120b';
         let chatMessages = JSON.parse(localStorage.getItem('ULTRON_CHAT_HISTORY')) || [];
 
         document.getElementById('apiKeyInput').value = apiKey;
+        document.getElementById('pollinationsKeyInput').value = pollinationsKey;
         document.getElementById('modelSelect').value = selectedModel;
 
         window.onload = function() {
             if (chatMessages.length === 0) {
-                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>Groq configured for text/coding tasks. Free image generation active via Pollinations AI with Spinner & Download support.', false);
+                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>Groq ready for text/coding tasks. Pollinations AI active for image generation (with optional API key support).', false);
             } else {
                 chatMessages.forEach(msg => {
                     appendMessage(msg.sender, msg.content, false);
@@ -621,9 +627,11 @@
 
         function saveSettings() {
             apiKey = document.getElementById('apiKeyInput').value.trim();
+            pollinationsKey = document.getElementById('pollinationsKeyInput').value.trim();
             selectedModel = document.getElementById('modelSelect').value;
             
             localStorage.setItem('ULTRON_API_KEY', apiKey);
+            localStorage.setItem('ULTRON_POLLINATIONS_KEY', pollinationsKey);
             localStorage.setItem('ULTRON_MODEL', selectedModel);
             
             closeSettings();
@@ -652,12 +660,12 @@
 
             const isImageReq = text.toLowerCase().includes('image') || text.toLowerCase().includes('draw') || text.toLowerCase().includes('picture') || text.toLowerCase().includes('generate');
 
-            // Free Pollinations Image Generation Engine with Spinner
+            // Free Pollinations Image Generation Engine with Key option & Spinner
             if (isImageReq) {
                 const loadingHtml = `
                     <div class="spinner-box">
                         <div class="spinner"></div>
-                        <span>Ultron is generating your image... Please wait.</span>
+                        <span>Ultron is generating your image via Pollinations AI... Please wait.</span>
                     </div>
                 `;
                 const loadingId = appendMessage('ultron', loadingHtml, false);
@@ -668,7 +676,11 @@
 
                     const encodedPrompt = encodeURIComponent(text);
                     const randomSeed = Math.floor(Math.random() * 10000);
-                    const imgUrl = `https://pollinations.ai/p/${encodedPrompt}?width=800&height=500&seed=${randomSeed}&nologo=true`;
+                    
+                    let imgUrl = `https://pollinations.ai/p/${encodedPrompt}?width=800&height=500&seed=${randomSeed}&nologo=true`;
+                    if (pollinationsKey) {
+                        imgUrl += `&key=${encodeURIComponent(pollinationsKey)}`;
+                    }
 
                     const uniqueDownloadId = 'dl-' + Date.now();
                     const imageCardHtml = `
@@ -743,7 +755,6 @@
                 ? `<div class="avatar avatar-ultron"><i class="fa-solid fa-robot"></i></div>` 
                 : `<div class="avatar avatar-user"><i class="fa-solid fa-user"></i></div>`;
 
-            // If content contains HTML tags like spinner or image card, don't apply full markdown replace blindly
             let formattedContent = content.includes('<div') || content.includes('<img') ? content : formatMarkdown(content);
 
             messageDiv.innerHTML = `
