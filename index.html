@@ -57,10 +57,11 @@
             gap: 10px;
         }
 
-        .brand-icon {
-            color: var(--primary);
-            font-size: 1.2rem;
-            filter: drop-shadow(0 0 8px var(--primary));
+        .brand-logo {
+            height: 32px;
+            width: auto;
+            border-radius: 4px;
+            object-fit: contain;
         }
 
         .brand-title {
@@ -448,7 +449,8 @@
     <header>
         <div class="brand">
             <button class="btn" style="padding: 4px 8px;" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <i class="fa-solid fa-robot brand-icon"></i>
+            <!-- Custom Ultron Logo Image Added Here -->
+            <img src="logo.png" alt="Ultron Logo" class="brand-logo">
             <span class="brand-title">Ultron</span>
         </div>
         <div class="header-actions">
@@ -526,7 +528,6 @@
     </div>
 
     <script>
-        // API Key and Model persistence via Local Storage
         let apiKey = localStorage.getItem('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') || '';
         let selectedModel = localStorage.getItem('ULTRON_MODEL') || 'openai/gpt-oss-120b';
         let chatMessages = JSON.parse(localStorage.getItem('ULTRON_CHAT_HISTORY')) || [];
@@ -562,7 +563,6 @@
             apiKey = document.getElementById('apiKeyInput').value.trim();
             selectedModel = document.getElementById('modelSelect').value;
             
-            // Permanently save to browser local storage
             localStorage.setItem('ULTRON_API_KEY', apiKey);
             localStorage.setItem('ULTRON_MODEL', selectedModel);
             
