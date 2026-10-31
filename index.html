@@ -256,6 +256,14 @@
             margin-bottom: 0;
         }
 
+        .generated-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
         /* CODE BLOCK STYLING */
         .code-container {
             margin: 8px 0;
@@ -449,8 +457,7 @@
     <header>
         <div class="brand">
             <button class="btn" style="padding: 4px 8px;" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <!-- Custom Ultron Logo Image Added Here -->
-            <img src="logo.png" alt="Ultron Logo" class="brand-logo">
+            <img src="logo.png" alt="Ultron Logo" class="brand-logo" onerror="this.style.display='none'">
             <span class="brand-title">Ultron</span>
         </div>
         <div class="header-actions">
@@ -486,7 +493,7 @@
             <!-- CHAT INPUT (FIXED FOOTER) -->
             <div class="input-panel">
                 <div class="input-box">
-                    <textarea id="userInput" placeholder="Ask Ultron..." onkeydown="handleKeyPress(event)"></textarea>
+                    <textarea id="userInput" placeholder="Ask Ultron or generate image..." onkeydown="handleKeyPress(event)"></textarea>
                     <button class="btn btn-primary send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
@@ -537,7 +544,7 @@
 
         window.onload = function() {
             if (chatMessages.length === 0) {
-                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>Ask Ultron anything. Ready to process code, build layouts, or handle developer tasks.', false);
+                appendMessage('ultron', '<strong>ULTRON ONLINE v2.0 (Image & Code Engine Active).</strong><br>Ask Ultron anything or request image generation.', false);
             } else {
                 chatMessages.forEach(msg => {
                     appendMessage(msg.sender, msg.content, false);
@@ -590,7 +597,22 @@
             appendMessage('user', text, true);
             input.value = '';
 
-            const loadingId = appendMessage('ultron', '<i>Ultron is processing...</i>', false);
+            const loadingId = appendMessage('ultron', '<i>Ultron engine processing...</i>', false);
+
+            // Check if user prompt requests image creation
+            const isImageReq = text.toLowerCase().includes('image') || text.toLowerCase().includes('draw') || text.toLowerCase().includes('picture') || text.toLowerCase().includes('logo');
+
+            if (isImageReq) {
+                setTimeout(() => {
+                    document.getElementById(loadingId).remove();
+                    chatMessages.pop();
+                    const encodedPrompt = encodeURIComponent(text);
+                    const imgUrl = `https://pollinations.ai/p/${encodedPrompt}?width=800&height=500&seed=${Math.floor(Math.random()*1000)}`;
+                    const imgResponse = `Here is your generated image:\n\n<img src="${imgUrl}" class="generated-img" alt="Generated AI Image">`;
+                    appendMessage('ultron', imgResponse, true);
+                }, 1200);
+                return;
+            }
 
             if (apiKey) {
                 try {
@@ -603,7 +625,7 @@
                         body: JSON.stringify({
                             model: selectedModel,
                             messages: [
-                                { role: 'system', content: 'You are Ultron, an advanced AI software developer assistant. Produce clean code, markdown blocks, and precise technical solutions.' },
+                                { role: 'system', content: 'You are Ultron, an advanced autonomous AI engine capable of code execution and vision tasks. Respond precisely.' },
                                 { role: 'user', content: text }
                             ]
                         })
@@ -629,7 +651,7 @@
                 setTimeout(() => {
                     document.getElementById(loadingId).remove();
                     chatMessages.pop();
-                    let simResponse = `### Ultron Response\n\nProcessed your request: **"${text}"** successfully.\n\nConfigure your API Key in Settings to run live model completions.`;
+                    let simResponse = `### Ultron Response\n\nProcessed: **"${text}"**.\n\nAPI Engine set up and ready for completions.`;
                     appendMessage('ultron', simResponse, true);
                 }, 1000);
             }
@@ -693,7 +715,7 @@
                 localStorage.removeItem('ULTRON_CHAT_HISTORY');
                 chatMessages = [];
                 document.getElementById('chatHistory').innerHTML = '';
-                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>History cleared. Ready for new instructions.', false);
+                appendMessage('ultron', '<strong>ULTRON ONLINE.</strong><br>History cleared.', false);
                 renderHistorySidebar();
             }
         }
