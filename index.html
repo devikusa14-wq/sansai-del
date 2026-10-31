@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ULTRON // Developer Workbench</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -26,24 +26,29 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
         }
 
-        body {
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            height: 100vh;
+        }
+
+        body {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
         /* TOP NAVIGATION */
         header {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
-            padding: 10px 16px;
+            padding: 10px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .brand {
@@ -54,7 +59,7 @@
 
         .brand-icon {
             color: var(--primary);
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             filter: drop-shadow(0 0 8px var(--primary));
         }
 
@@ -71,21 +76,21 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn {
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             transition: all 0.2s ease;
         }
 
@@ -130,8 +135,13 @@
         @media (max-width: 768px) {
             .sidebar {
                 position: absolute;
-                height: 100%;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 75%;
+                max-width: 260px;
                 transform: translateX(-100%);
+                box-shadow: 5px 0 15px rgba(0,0,0,0.5);
             }
             .sidebar.active {
                 transform: translateX(0);
@@ -179,36 +189,37 @@
             flex-direction: column;
             background: var(--bg-dark);
             position: relative;
+            height: 100%;
             overflow: hidden;
         }
 
         /* CHAT WINDOW */
         .chat-history {
             flex: 1;
-            padding: 16px;
+            padding: 14px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         .message {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             max-width: 800px;
             width: 100%;
             margin: 0 auto;
         }
 
         .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
@@ -229,15 +240,15 @@
             flex: 1;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             line-height: 1.5;
             word-break: break-word;
         }
 
         .msg-content p {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         
         .msg-content p:last-child {
@@ -246,7 +257,7 @@
 
         /* CODE BLOCK STYLING */
         .code-container {
-            margin: 10px 0;
+            margin: 8px 0;
             background: var(--code-bg);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -255,7 +266,7 @@
 
         .code-header {
             background: #11161d;
-            padding: 6px 10px;
+            padding: 5px 8px;
             font-size: 0.7rem;
             color: var(--text-muted);
             display: flex;
@@ -285,18 +296,19 @@
         }
 
         pre {
-            padding: 10px;
+            padding: 8px;
             overflow-x: auto;
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #e6edf3;
         }
 
-        /* CHAT INPUT AREA */
+        /* FIXED FOOTER INPUT AREA FOR MOBILE */
         .input-panel {
-            padding: 12px 16px;
+            padding: 10px 12px;
             background: var(--bg-card);
             border-top: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .input-box {
@@ -305,6 +317,7 @@
             position: relative;
             display: flex;
             gap: 8px;
+            align-items: center;
         }
 
         textarea {
@@ -313,10 +326,10 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-main);
-            padding: 10px 14px;
+            padding: 10px 12px;
             font-size: 0.9rem;
             resize: none;
-            height: 48px;
+            height: 44px;
             outline: none;
             transition: border-color 0.2s;
         }
@@ -324,6 +337,14 @@
         textarea:focus {
             border-color: var(--primary);
             box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .send-btn {
+            height: 44px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* MODALS & PANELS */
@@ -347,7 +368,7 @@
             border-radius: 10px;
             width: 450px;
             max-width: 90%;
-            padding: 20px;
+            padding: 18px;
             box-shadow: 0 0 25px rgba(0,0,0,0.8);
         }
 
@@ -355,11 +376,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
@@ -392,6 +413,8 @@
         @media (max-width: 768px) {
             .sandbox-panel {
                 position: absolute;
+                top: 0;
+                left: 0;
                 width: 100%;
                 height: 100%;
                 z-index: 20;
@@ -403,7 +426,7 @@
         }
 
         .sandbox-header {
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: #11161d;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -458,11 +481,11 @@
                 <!-- Messages load here -->
             </div>
 
-            <!-- CHAT INPUT -->
+            <!-- CHAT INPUT (FIXED FOOTER) -->
             <div class="input-panel">
                 <div class="input-box">
                     <textarea id="userInput" placeholder="Ask Ultron..." onkeydown="handleKeyPress(event)"></textarea>
-                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="btn btn-primary send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
@@ -484,7 +507,7 @@
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 style="color: var(--text-main); font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Configuration</h3>
+                <h3 style="color: var(--text-main); font-size: 0.95rem;"><i class="fa-solid fa-sliders"></i> Configuration</h3>
                 <button class="btn" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="form-group">
